@@ -49,7 +49,7 @@ def KFold_test(clf, X, y):
     mean_mat_FPR = np.mean(matrixes_FPR, axis=0)
     std_mat_FPR = np.std(matrixes_FPR, axis=0)
     
-    plot_and_savemats(mean_mat_un, classes)
+    plot_table(mean_mat_un, classes)
     
     return mean_mat, std_mat, mean_mat_FPR, std_mat_FPR
 
@@ -160,6 +160,30 @@ def plot_and_savemats(matrix, classes):
         yticks=list(range(2)), yticklabels=['True', 'False'])
     plt.tight_layout()
     pp.savefig()
+    
+def plot_table(matrix, classes):
+    els = ((0,2), (2,0), (1,2), (2,1))
+    table = []
+    fig, axs = plt.subplots(1,1)
+    for i, this_class in enumerate(classes):
+        TP = matrix[i, i]
+        FN = np.sum([matrix[i, j] for j in range(matrix.shape[1]) if j!=i])
+        FP = np.sum([matrix[j, i] for j in range(matrix.shape[0]) if j!=i])
+        TN = np.sum([matrix[j, k] for k in range(matrix.shape[1]) for j in range(matrix.shape[0]) if j!=i and k!=i])
+        
+        this_mat = gen_tmat(TP, TN, FP, FN)
+       
+        table.append(['%.2f' % this_mat[r, c] for (r, c) in els])
+
+    axs[0].axis('tight')
+    axs[0].axis('off')
+    axs.table(cellText=table,
+              rowLabels=classes,
+              colLabels=['Positive Predicted Value', 'True Positive Rate', 'False Positive Rate', 'Negative Predictive Value'],
+              loc='center')
+
+    plt.title('Extra Trees with 1000 estimators, 3 features and bootstrap on')
+    pp.savefig()
 
 #%% Load data file
 
@@ -191,11 +215,13 @@ clf = ExtraTreesClassifier(n_estimators=n_tree, max_features=max_feat, bootstrap
 #%% Generate confusion matrixes
 
 pp = PdfPages('PCA_ExtraTrees_Full.pdf')
+
+
 mean_mat, std_mat, mean_mat_FPR, std_mat_FPR = KFold_test(clf, X_new, y)
-title = 'Extra Trees with 1000 estimators, 3 features and bootstrap on\nConfusion Matrix normalized for True Label'
+title = 'Confusion Matrix normalized for True Label'
 pp_plot_conf_mats(mean_mat, std_mat, classes, title, pp)
 
-title = 'Extra Trees with 1000 estimators, 3 features and bootstrap on\nConfusion Matrix normalized for Predicted Label'
+title = 'Confusion Matrix normalized for Predicted Label'
 pp_plot_conf_mats(mean_mat_FPR, std_mat_FPR, classes, title, pp)
 
 #%% Separate in training and testing groups
