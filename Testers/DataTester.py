@@ -175,8 +175,8 @@ def plot_table(matrix, classes):
        
         table.append(['%.2f' % this_mat[r, c] for (r, c) in els])
 
-    axs[0].axis('tight')
-    axs[0].axis('off')
+    axs.axis('tight')
+    axs.axis('off')
     axs.table(cellText=table,
               rowLabels=classes,
               colLabels=['Positive Predicted Value', 'True Positive Rate', 'False Positive Rate', 'Negative Predictive Value'],
