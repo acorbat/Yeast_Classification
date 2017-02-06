@@ -110,18 +110,33 @@ def conf_mat(y_correct, y_predict, classes, Plot=False, this_axis=1):
         plot_conf_mat(matrix, classes)
     return matrix
 
-def plot_img(pos, pp):
+def plot_img(pos, ax):
     correct_label = y_test[pos]
     wrong_label = X_test.predict[pos]
     title = 'True: '+correct_label+'; Predicted: '+wrong_label+'; in image '+str(pos)
-    plt.imshow(skio.imread(df.img[pos]))
-    plt.title(title)
-    pp.savefig()
-    plt.close()
+    ax.imshow(skio.imread(df.img[pos]))
+    plt.suptitle(title)
     #dfc = df.copy()
     #dfc.c[pos] = 'VIEW'
     #q = 'c == "%s" or c == "%s" or c == "%s"' % (correct_label, wrong_label, 'VIEW')
     #sns.pairplot(dfc.query(q), hue='c', vars=df.columns[2:])
+
+def plot_proba(pos, axs):
+    probas = clf.predict_proba(X_test.loc[[pos], list(range(len(df.columns[2:])))])
+    this_classes = clf.classes_
+    axs.axis('tight')
+    axs.axis('off')
+    axs.table(cellText=probas,
+              rowLabels=['Probability'],
+              colLabels=this_classes,
+              loc='center')
+    
+def plot_mistake(pos, pp):
+    fig, axes = plt.subplots(nrows=2, ncols=1)
+    plot_img(pos, axes[0])
+    plot_proba(pos, axes[1])
+    pp.savefig()
+    plt.close()
 
 def gen_tmat(TP, TN, FP, FN):
     mat = np.zeros((3, 3))
@@ -238,7 +253,7 @@ clf = ExtraTreesClassifier(n_estimators=n_tree, max_features=max_feat, bootstrap
 
 #%% Generate confusion matrixes
 
-pp = PdfPages('PCA_ExtraTrees_FirstCorr.pdf')
+pp = PdfPages('PCA_ExtraTrees_probas.pdf')
 
 
 mean_mat, std_mat, mean_mat_FPR, std_mat_FPR = KFold_test(clf, X_new, y)
@@ -285,7 +300,7 @@ for i in X_test.index:
     if not X_test.correct[i]:
         #print('mixed '+y_test[i]+' for '+X_test.predict[i]+' in image '+str(i))
         pairs.append((y_test[i], X_test.predict[i]))
-        plot_img(i, pp)
+        plot_mistake(i, pp)
         
 #matrix = confusion_matrix(y_test, X_test.predict, labels=classes)
 #plt.matshow((matrix.T / matrix.T.sum(axis=0)).T)
