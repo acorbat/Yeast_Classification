@@ -160,6 +160,7 @@ def plot_and_savemats(matrix, classes):
         yticks=list(range(2)), yticklabels=['True', 'False'])
     plt.tight_layout()
     pp.savefig()
+    plt.close()
     
 def plot_table(matrix, classes):
     els = ((0,2), (2,0), (1,2), (2,1))
@@ -184,6 +185,7 @@ def plot_table(matrix, classes):
 
     plt.title('Extra Trees with 1000 estimators, 3 features and bootstrap on')
     pp.savefig()
+    plt.close()
 
 #%% Load data file
 
