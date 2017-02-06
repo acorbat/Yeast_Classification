@@ -203,7 +203,8 @@ for i in corrections.index:
     possibles = corrections['Según máscara de Cellid'][i].split('/')
     predicted = corrections['Predicted'][i]
     if corrections[corrections.columns[2]][i] not in possibles:
-        df.loc[corrections['image'][i]]['c'] = predicted if predicted in possibles else possibles[0]
+        correct = predicted if predicted in possibles else possibles[0]
+        df.set_value(corrections['image'][i], 'c', correct)
         continue
 
 #%% Separate data in features and classes
