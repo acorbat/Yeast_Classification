@@ -301,6 +301,10 @@ for i in X_test.index:
         #print('mixed '+y_test[i]+' for '+X_test.predict[i]+' in image '+str(i))
         pairs.append((y_test[i], X_test.predict[i]))
         plot_mistake(i, pp)
+
+for i in X_test.index:
+    if X_test.correct[i]:
+        plot_mistake(i, pp) # Actually not a mistake
         
 #matrix = confusion_matrix(y_test, X_test.predict, labels=classes)
 #plt.matshow((matrix.T / matrix.T.sum(axis=0)).T)
