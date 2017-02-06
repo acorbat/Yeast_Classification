@@ -188,10 +188,31 @@ def plot_table(matrix, classes):
 #%% Load data file
 
 df = pd.read_pickle('Train.pandas')
+
+#%% Prefilter some data corrected
+
+corrections = pd.read_excel('2017.01.31_Curado.xlsx', 0)
+
+for i in corrections.index:
+    # Remove deform cells
+    if corrections['Según máscara de Cellid'][i]=='deforme':
+        df = df.drop(corrections['image'][i])
+        continue
+    
+    # Correct wrong labeled cases
+    possibles = corrections['Según máscara de Cellid'][i].split('/')
+    predicted = corrections['Predicted'][i]
+    if corrections[corrections.columns[2]][i] not in possibles:
+        df.loc[corrections['image'][i]]['c'] = predicted if predicted in possibles else possibles[0]
+        continue
+
+#%% Separate data in features and classes
+
 X = df[df.columns[2:]]
 y = df.c
 
 classes = list(set(df.c))
+classes.sort()
 
 #%% Transform with PCA
 
@@ -214,7 +235,7 @@ clf = ExtraTreesClassifier(n_estimators=n_tree, max_features=max_feat, bootstrap
 
 #%% Generate confusion matrixes
 
-pp = PdfPages('PCA_ExtraTrees_Full.pdf')
+pp = PdfPages('PCA_ExtraTrees_FirstCorr.pdf')
 
 
 mean_mat, std_mat, mean_mat_FPR, std_mat_FPR = KFold_test(clf, X_new, y)
