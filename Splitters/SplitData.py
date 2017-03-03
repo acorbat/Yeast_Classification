@@ -12,13 +12,14 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 #%% Load dataframe
-os.chdir(r'C:\Users\Admin\Desktop\clasif\code')
+os.chdir(r'D:\Agus\HiddenProject')#os.chdir(r'C:\Users\Admin\Desktop\clasif\code')
 df = pd.read_pickle('datadf.pkl')
-os.chdir(r'D:\Agus\HiddenProject')
+#os.chdir(r'D:\Agus\HiddenProject')
 
 #%% filter dataframe
 
 df = df.query('c != "m.shmoos"')
+df = df.query('c != "RtCC"')
 
 count = Counter(df.c.values)
 print(count)
