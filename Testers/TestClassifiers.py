@@ -26,7 +26,11 @@ from sklearn.decomposition import PCA, FastICA
 #%% Load data
 os.chdir(r'D:\Agus\HiddenProject')
 df = pd.read_pickle('Train.pandas')
-X = df[df.columns[2:]]
+#X = df[['hu1', 'hu2', 'hu3', 'hu4', 'hu5', 'hu6', 'hu7', 'hu8']]
+cols = []
+for j in range(1, 42):
+    cols.append('S'+str(j))
+X = df[cols]
 y = df.c
 
 classes = list(set(y))
@@ -169,7 +173,9 @@ def Test_and_savetoPDF(X, y, pdf_name):
     
     bootstraps = {'Bootstrap On':True, 'Bootstrap Off':False}
     n_trees = [10, 100, 1000]
-    max_feats = [3, 5, 8]
+    max_feats = np.asarray([.3, .5, .8])
+    max_feats *= len(cols)
+    max_feats = [int(x) for x in max_feats]
     
     for bootstrap_state, bootsrap_bool in bootstraps.items():
         for n_tree in n_trees:
@@ -184,7 +190,9 @@ def Test_and_savetoPDF(X, y, pdf_name):
     
     bootstraps = {'Bootstrap On':True, 'Bootstrap Off':False}
     n_trees = [10, 100, 1000]
-    max_feats = [3, 5, 8]
+    max_feats = np.asarray([.3, .5, .8])
+    max_feats *= len(cols)
+    max_feats = [int(x) for x in max_feats]
     
     for bootstrap_state, bootsrap_bool in bootstraps.items():
         for n_tree in n_trees:
@@ -204,7 +212,9 @@ def Test_and_savetoPDF(X, y, pdf_name):
                   'Bernoulli Naive Bayes':BernoulliNB()}
     bootstraps = {'Bootstrap On':True, 'Bootstrap Off':False}
     n_trees = [10, 100, 1000]
-    max_feats = [3, 5, 8]
+    max_feats = np.asarray([.3, .5, .8])
+    max_feats *= len(cols)
+    max_feats = [int(x) for x in max_feats]
     
     for estimator_name, estimator in estimators.items():
         for bootstrap_state, bootsrap_bool in bootstraps.items():
@@ -246,7 +256,9 @@ def Test_and_savetoPDF(X, y, pdf_name):
     #%% Test Gradient Boosting Classifier
     
     n_trees = [100, 500, 1000]
-    max_feats = [3, 5, 8]
+    max_feats = np.asarray([.3, .5, .8])
+    max_feats *= len(cols)
+    max_feats = [int(x) for x in max_feats]
     learn_rates = [0.1, 0.5, 0.8, 1]
     
     for n_tree in n_trees:
@@ -305,7 +317,7 @@ def Test_and_savetoPDF(X, y, pdf_name):
 
 #%% Train all classifiers and save pdf
 print('Test all without dimension transformation')
-Test_and_savetoPDF(X, y, 'Classifiers.pdf')
+Test_and_savetoPDF(X, y, 'Classifiers_noRtCC_Zer.pdf')
 
 #%% Repeat with PCA applied to data
 print('Transform with PCA and reTest')
@@ -315,7 +327,7 @@ X_new = X.copy()
 #pca.fit(X)
 X_new = pd.DataFrame(pca.fit_transform(X_new), index=X_new.index)
 
-Test_and_savetoPDF(X_new, y, 'Classifiers_with_PCA.pdf')
+Test_and_savetoPDF(X_new, y, 'Classifiers_with_PCA_noRtCC.pdf')
 #%% Apply iCA to data
 print('Transform with ICA and reTest')
 # train
@@ -323,4 +335,4 @@ ica = FastICA()
 X_new = X.copy()
 X_new = pd.DataFrame(ica.fit_transform(X_new), index=X_new.index)
 
-Test_and_savetoPDF(X_new, y, 'Classifiers_with_ICA.pdf')
+Test_and_savetoPDF(X_new, y, 'Classifiers_with_ICA_noRtCC_Zer.pdf')

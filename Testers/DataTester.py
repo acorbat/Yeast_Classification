@@ -13,6 +13,7 @@ import skimage.io as skio
 from collections import Counter
 from matplotlib.backends.backend_pdf import PdfPages
 
+from sklearn.preprocessing import normalize
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import StratifiedKFold
 #from sklearn.neighbors import RadiusNeighborsClassifier, KNeighborsClassifier
@@ -24,9 +25,10 @@ os.chdir(r'D:\Agus\HiddenProject')
 #%% Plot image function
 
 # Matrix functions
-def KFold_test(clf, X, y):
+def KFold_test(clf, X, y, classes=None):
     skf = StratifiedKFold(n_splits=3, shuffle=True)
-    classes = list(set(y))
+    if classes is None:
+        classes = list(set(y))
     matrixes_un = []
     matrixes = []
     matrixes_FPR = []
@@ -104,7 +106,7 @@ def conf_mat(y_correct, y_predict, classes, Plot=False, this_axis=1):
     """
     matrix = confusion_matrix(y_correct, y_predict, labels=classes)
     if this_axis is not None:
-        matrix = (matrix.T / matrix.T.sum(axis=this_axis)).T
+        matrix = normalize(matrix, axis=this_axis, norm='l1')
     
     if Plot:
         plot_conf_mat(matrix, classes)
@@ -122,7 +124,7 @@ def plot_img(pos, ax):
     #sns.pairplot(dfc.query(q), hue='c', vars=df.columns[2:])
 
 def plot_proba(pos, axs):
-    probas = clf.predict_proba(X_test.loc[[pos], list(range(len(df.columns[2:])))])
+    probas = clf.predict_proba(X_test.loc[pos, range(len(cols))])
     this_classes = clf.classes_
     axs.axis('tight')
     axs.axis('off')
@@ -207,15 +209,14 @@ def plot_table(matrix, classes):
 df = pd.read_pickle('Train.pandas')
 
 #%% Prefilter some data corrected
-
-corrections = pd.read_excel('2017.01.31_Curado.xlsx', 0)
-
-for i in corrections.index:
-    # Remove deform cells
-    if corrections['Según máscara de Cellid'][i]=='deforme':
-        df = df.drop(corrections['image'][i])
-        continue
-    
+Remove_deform = False
+if Remove_deform:
+    for i in df.index:
+        # Remove deform cells
+        if df['c'][i]=='deform':
+            df = df.drop(i)
+            continue
+    """
     # Correct wrong labeled cases
     possibles = corrections['Según máscara de Cellid'][i].split('/')
     predicted = corrections['Predicted'][i]
@@ -223,10 +224,15 @@ for i in corrections.index:
         correct = predicted if predicted in possibles else possibles[0]
         df.set_value(corrections['image'][i], 'c', correct)
         continue
-
+"""
 #%% Separate data in features and classes
 
-X = df[df.columns[2:]]
+#cols = ['hu1', 'hu2', 'hu3', 'hu4', 'hu5', 'hu6', 'hu7', 'hu8']
+cols = []
+for j in range(1, 42):
+    cols.append('S'+str(j))
+cols = cols[:8]
+X = df[cols]
 y = df.c
 
 classes = list(set(df.c))
@@ -253,10 +259,12 @@ clf = ExtraTreesClassifier(n_estimators=n_tree, max_features=max_feat, bootstrap
 
 #%% Generate confusion matrixes
 
-pp = PdfPages('PCA_ExtraTrees_probas.pdf')
+if Remove_deform:
+    pp = PdfPages('PCA_ExtraTrees_probas_sindeform_noRtCC_Zer8.pdf')
+else:
+    pp = PdfPages('PCA_ExtraTrees_probas_condeform_noRtCC_Zer8.pdf')
 
-
-mean_mat, std_mat, mean_mat_FPR, std_mat_FPR = KFold_test(clf, X_new, y)
+mean_mat, std_mat, mean_mat_FPR, std_mat_FPR = KFold_test(clf, X_new, y, classes=classes)
 title = 'Confusion Matrix normalized for True Label'
 pp_plot_conf_mats(mean_mat, std_mat, classes, title, pp)
 
@@ -296,6 +304,8 @@ pairs = []
 pp.attach_note('amount of errors:'+ str(len(X_test)-np.sum(X_test['correct'])))
 pp.attach_note('Errors commited:')
 
+
+os.chdir(r'D:\Agus\HiddenProject\Send')
 for i in X_test.index:
     if not X_test.correct[i]:
         #print('mixed '+y_test[i]+' for '+X_test.predict[i]+' in image '+str(i))
